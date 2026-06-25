@@ -1,0 +1,75 @@
+name: CI - Functions Tests
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  functions-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Install functions deps
+        run: |
+          cd functions
+          npm ci
+
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools
+
+      - name: Create runtime config for functions (Stripe test keys)
+        run: |
+          mkdir -p functions
+          echo '{"stripe":{"secret":"sk_test_ci","webhook_secret":"whsec_ci"}}' > functions/.runtimeconfig.json
+
+      - name: Start Firebase emulators
+        run: |
+          cd functions
+          npx firebase emulators:start --only functions,firestore --project demo-project &
+          # give emulators time to boot
+          sleep 12
+
+      - name: Run booking scenarios (capture log)
+        run: |
+          cd functions
+          mkdir -p test-results
+          npm run test:booking:scenarios 2>&1 | tee test-results/scenarios.log
+
+      - name: Upload test log artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: booking-scenarios-log
+          path: functions/test-results/scenarios.log
+
+      - name: Comment test results on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'functions/test-results/scenarios.log';
+            let body = '### CI: Booking scenarios output\n\n';
+            if (fs.existsSync(path)) {
+              let out = fs.readFileSync(path, 'utf8');
+              // trim large logs
+              if (out.length > 12000) out = out.slice(0, 12000) + '\n\n[Output truncated]';
+              body += '```
+' + out + '\n```\n';
+            } else {
+              body += 'No test log found.';
+            }
+            const pr = context.payload.pull_request.number;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr,
+              body
+            });
