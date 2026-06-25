@@ -26,11 +26,11 @@ jobs:
             const issue_number = context.payload.pull_request.number;
 
             // Check existing labels
-            const existing = await github.issues.listLabelsForRepo({ owner, repo });
+            const existing = await github.rest.issues.listLabelsForRepo({ owner, repo });
             const has = existing.data.some(l => l.name.toLowerCase() === labelName);
             if (!has) {
-              await github.issues.createLabel({ owner, repo, name: labelName, color: 'ededed' });
+              await github.rest.issues.createLabel({ owner, repo, name: labelName, color: 'ededed' });
             }
 
-            await github.issues.addLabels({ owner, repo, issue_number, labels: [labelName] });
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [labelName] });
             core.info(`Added label '${labelName}'`);
