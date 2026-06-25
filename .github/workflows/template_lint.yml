@@ -16,8 +16,8 @@ jobs:
       - name: Run Super-Linter
         uses: github/super-linter@v4
         env:
+          VALIDATE_ALL: false
           VALIDATE_MARKDOWN: true
           VALIDATE_YAML: true
-          VALIDATE_JSON: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_WORKING_DIRECTORY: ./
