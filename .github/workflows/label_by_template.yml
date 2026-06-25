@@ -1,0 +1,36 @@
+name: Label PR by Template
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Label PR based on template comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const m = body.match(/<!--\s*template:\s*(\w+)\s*-->/i);
+            if (!m) {
+              core.info('No template marker found');
+              return;
+            }
+            const labelName = m[1].toLowerCase();
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            // Check existing labels
+            const existing = await github.issues.listLabelsForRepo({ owner, repo });
+            const has = existing.data.some(l => l.name.toLowerCase() === labelName);
+            if (!has) {
+              await github.issues.createLabel({ owner, repo, name: labelName, color: 'ededed' });
+            }
+
+            await github.issues.addLabels({ owner, repo, issue_number, labels: [labelName] });
+            core.info(`Added label '${labelName}'`);

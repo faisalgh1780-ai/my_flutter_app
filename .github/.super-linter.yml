@@ -1,0 +1,12 @@
+# Super-Linter configuration (minimal)
+# See https://github.com/github/super-linter for details
+
+# If you need custom rules, add them under 'rules_dir' and reference here
+# rules_dir: .github/linters-rules
+
+# Example: exclude vendor or build directories
+# exclude:
+#   - build
+#   - vendor
+
+# Keep file minimal; workflow sets env for which validators to run.

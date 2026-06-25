@@ -1,0 +1,40 @@
+name: Create Repository Labels
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update labels from config
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = '.github/labels/labels.json';
+            if (!fs.existsSync(path)) {
+              core.setFailed(`Labels file not found: ${path}`);
+              return;
+            }
+            const labels = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const existing = await github.issues.listLabelsForRepo({ owner, repo });
+            const existingNames = new Set(existing.data.map(l => l.name.toLowerCase()));
+
+            for (const lbl of labels) {
+              const name = lbl.name;
+              const color = lbl.color || 'ededed';
+              const description = lbl.description || '';
+              if (existingNames.has(name.toLowerCase())) {
+                await github.issues.updateLabel({ owner, repo, name, new_name: name, color, description });
+                core.info(`Updated label ${name}`);
+              } else {
+                await github.issues.createLabel({ owner, repo, name, color, description });
+                core.info(`Created label ${name}`);
+              }
+            }

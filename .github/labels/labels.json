@@ -1,0 +1,7 @@
+[
+  { "name": "feature", "color": "0e8a16", "description": "New feature or enhancement" },
+  { "name": "bugfix", "color": "d73a4a", "description": "Bug or defect" },
+  { "name": "chore", "color": "006b75", "description": "Maintenance tasks" },
+  { "name": "docs", "color": "0075ca", "description": "Documentation changes" },
+  { "name": "security", "color": "b60205", "description": "Security related" }
+]

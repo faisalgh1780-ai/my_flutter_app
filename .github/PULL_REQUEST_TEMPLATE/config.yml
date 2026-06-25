@@ -1,0 +1,13 @@
+blank_issue_template: false
+
+# قائمة القوالب التي سيعرضها GitHub عندما ينشئ المستخدم PR
+# يتم عرض الملفات بنفس ترتيب القائمة
+featured_templates:
+  - name: Feature
+    filename: feature_pr.md
+  - name: Bugfix
+    filename: bugfix_pr.md
+  - name: Chore
+    filename: chore_pr.md
+  - name: Advanced
+    filename: advanced_pr.md
